@@ -7,7 +7,7 @@ CREATE TABLE "VIEW_ALBUMS" ("album" character varying(128), "songs" bigint, "dur
 
 
 DROP VIEW IF EXISTS "VIEW_ARTISTS";
-CREATE TABLE "VIEW_ARTISTS" ("artist" character varying(128), "birthdate" date, "song_count" bigint);
+CREATE TABLE "VIEW_ARTISTS" ("artist" character varying(128), "birthdate" date, "songs" bigint);
 
 
 DROP TABLE IF EXISTS "album";
@@ -131,10 +131,10 @@ CREATE VIEW "VIEW_ALBUMS" AS SELECT album.name AS album,
 DROP TABLE IF EXISTS "VIEW_ARTISTS";
 CREATE VIEW "VIEW_ARTISTS" AS SELECT artist.name AS artist,
     artist.birthdate,
-    count(song.id) AS song_count
+    count(song.id) AS songs
    FROM (artist
      JOIN song ON ((song.artist_id = artist.id)))
   GROUP BY artist.name, artist.birthdate
   ORDER BY artist.name;
 
--- 2022-11-26 16:07:29.01675+00
+-- 2022-11-26 16:10:37.029421+00

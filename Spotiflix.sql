@@ -2,6 +2,14 @@
 
 \connect "Spotiflix";
 
+DROP VIEW IF EXISTS "VIEW_ALBUMS";
+CREATE TABLE "VIEW_ALBUMS" ("album" character varying(128), "songs" bigint, "duration" bigint);
+
+
+DROP VIEW IF EXISTS "VIEW_ARTISTS";
+CREATE TABLE "VIEW_ARTISTS" ("artist" character varying(128), "birthdate" date, "song_count" bigint);
+
+
 DROP TABLE IF EXISTS "album";
 DROP SEQUENCE IF EXISTS album_id_seq;
 CREATE SEQUENCE album_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 START 3 CACHE 1;
@@ -98,10 +106,6 @@ CREATE TABLE "public"."track_deliveries" (
 ) WITH (oids = false);
 
 
-DROP VIEW IF EXISTS "view_artists";
-CREATE TABLE "view_artists" ("name" character varying(128), "birthdate" date, "songs" bigint);
-
-
 ALTER TABLE ONLY "public"."album_rent" ADD CONSTRAINT "album_rent_album_id_fkey" FOREIGN KEY (album_id) REFERENCES album(id) ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "public"."album_rent" ADD CONSTRAINT "album_rent_customer_id_fkey" FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE NOT DEFERRABLE;
 
@@ -114,13 +118,23 @@ ALTER TABLE ONLY "public"."song" ADD CONSTRAINT "song_artist_id_fkey" FOREIGN KE
 
 ALTER TABLE ONLY "public"."track_deliveries" ADD CONSTRAINT "track_deliveries_album_stock_id_fkey" FOREIGN KEY (album_stock_id) REFERENCES album_stock(id) ON DELETE CASCADE NOT DEFERRABLE;
 
-DROP TABLE IF EXISTS "view_artists";
-CREATE VIEW "view_artists" AS SELECT artist.name,
+DROP TABLE IF EXISTS "VIEW_ALBUMS";
+CREATE VIEW "VIEW_ALBUMS" AS SELECT album.name AS album,
+    count(album_song.song_id) AS songs,
+    sum(song.duration) AS duration
+   FROM ((album
+     JOIN album_song ON ((album_song.album_id = album.id)))
+     JOIN song ON ((song.id = album_song.song_id)))
+  GROUP BY album.name
+  ORDER BY album.name;
+
+DROP TABLE IF EXISTS "VIEW_ARTISTS";
+CREATE VIEW "VIEW_ARTISTS" AS SELECT artist.name AS artist,
     artist.birthdate,
-    count(song.id) AS songs
+    count(song.id) AS song_count
    FROM (artist
      JOIN song ON ((song.artist_id = artist.id)))
   GROUP BY artist.name, artist.birthdate
   ORDER BY artist.name;
 
--- 2022-11-26 15:49:59.806247+00
+-- 2022-11-26 16:07:29.01675+00

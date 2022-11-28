@@ -214,7 +214,6 @@ CREATE VIEW "VIEW_ARTISTS" AS SELECT artist.name AS artist,
   GROUP BY artist.name, artist.birthdate
   ORDER BY artist.name;
 
-
 CREATE OR REPLACE FUNCTION ADD_ARTIST(a_name VARCHAR(128), a_birthdate DATE)
   RETURNS boolean
   AS $$
@@ -264,5 +263,33 @@ BEGIN
       RETURN TRUE;
     END IF;
   END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION RENT_ALBUM(c_email VARCHAR(128), a_name VARCHAR(128), b_date DATE)
+  RETURNS TABLE (result boolean, message text)
+  AS $$
+DECLARE
+    c_id integer;
+    a_id integer;
+    a_stock integer;
+    isBorrow integer;
+BEGIN
+    SELECT id INTO c_id FROM customer WHERE customer.email = c_email;
+    SELECT id INTO a_id FROM album WHERE album.name = a_name;
+    SELECT stock INTO a_stock FROM album_stock WHERE album_id = a_id;
+    IF c_id IS NULL OR a_id IS NULL OR a_stock = 0 THEN
+      RETURN QUERY SELECT FALSE, 'Customer or album doesnt exist or album stock is 0';
+    ELSE
+        SELECT album_id INTO isBorrow FROM album_rent 
+        WHERE album_rent.customer_id = c_id
+        AND album_rent.album_id = a_id;
+        IF isBorrow IS NULL THEN
+          INSERT INTO album_rent (customer_id, album_id, borrow_date) VALUES (c_id, a_id, b_date);
+          RETURN QUERY SELECT TRUE, 'Album borrowed';
+        ELSE
+          RETURN QUERY SELECT FALSE, 'Customer already borrowed this album';
+        END IF;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;

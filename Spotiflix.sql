@@ -293,3 +293,18 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION DURATION_TO_STRING(duration integer)
+  RETURNS varchar(16)
+  AS $$
+DECLARE
+    hours integer;
+    minutes integer;
+    seconds integer;
+BEGIN
+    hours := duration / 3600;
+    minutes := (duration - hours * 3600) / 60;
+    seconds := duration - hours * 3600 - minutes * 60;
+    RETURN hours || 'h ' || minutes || 'm ' || seconds || 's';
+END;
+$$ LANGUAGE plpgsql;

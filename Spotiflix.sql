@@ -246,3 +246,23 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ADD_STOCK(a_name VARCHAR(128), a_amount integer)
+  RETURNS boolean
+  AS $$
+DECLARE
+    a_id integer;
+BEGIN
+  IF a_amount < 0 THEN
+    RETURN FALSE;
+  ELSE
+    SELECT id INTO a_id FROM album WHERE album.name = a_name;
+    IF a_id IS NULL THEN
+      RETURN FALSE;
+    ELSE
+      UPDATE album_stock SET stock = stock + a_amount WHERE album_id = a_id;
+      RETURN TRUE;
+    END IF;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;

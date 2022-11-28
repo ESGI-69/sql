@@ -230,3 +230,19 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ADD_ALBUM(a_name VARCHAR(128))
+  RETURNS boolean
+  AS $$
+DECLARE
+    album_id integer;
+BEGIN
+    SELECT id INTO album_id FROM album WHERE album.name = a_name;
+    IF album_id IS NULL THEN
+        INSERT INTO album (name) VALUES (a_name);
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;

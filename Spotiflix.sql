@@ -310,3 +310,17 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION track_deliveries_update()
+  RETURNS trigger
+  AS $$
+BEGIN
+    INSERT INTO track_deliveries (album_stock_id, amount, delivery_date) VALUES (NEW.id, NEW.stock - OLD.stock, now());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER track_deliveries_update
+  AFTER UPDATE ON album_stock
+  FOR EACH ROW
+  EXECUTE PROCEDURE track_deliveries_update();
